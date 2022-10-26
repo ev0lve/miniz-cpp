@@ -4971,13 +4971,22 @@ namespace miniz_cpp {
 namespace detail {
 
 #ifdef _WIN32
-char directory_separator = '\\';
-char alt_directory_separator = '/';
+inline char directory_separator = '\\';
+inline char alt_directory_separator = '/';
 #else
-char directory_separator = '/';
-char alt_directory_separator = '\\';
+inline char directory_separator = '/';
+inline char alt_directory_separator = '\\';
 #endif
 
+#ifdef MINIZ_HEADER_FILE_ONLY
+
+std::string join_path(const std::vector<std::string> &parts);
+std::vector<std::string> split_path(const std::string &path, char delim = directory_separator);
+uint32_t crc32buf(const char *buf, std::size_t len);
+tm safe_localtime(const time_t &t);
+std::size_t write_callback(void *opaque, std::uint64_t file_ofs, const void *pBuf, std::size_t n);
+
+#else
 std::string join_path(const std::vector<std::string> &parts)
 {
     std::string joined;
@@ -5078,15 +5087,15 @@ uint32_t crc32buf(const char *buf, std::size_t len)
         0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
         0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
     };
-    
+
 #define UPDC32(octet,crc) (crc_32_tab[((crc)\
 ^ static_cast<uint8_t>(octet)) & 0xff] ^ ((crc) >> 8))
-    
+
     for ( ; len; --len, ++buf)
     {
         oldcrc32 = UPDC32(*buf, oldcrc32);
     }
-    
+
     return ~oldcrc32;
 }
 
@@ -5120,6 +5129,8 @@ std::size_t write_callback(void *opaque, std::uint64_t file_ofs, const void *pBu
 
     return n;
 }
+
+#endif
 
 } // namespace detail
 
